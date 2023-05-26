@@ -9,17 +9,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
 
 @RestController
 @RequestMapping("/login")
 public class LoginController {
 
-//    private final JwtUtil jwtUtil;
-//
-//    @Autowired
-//    public LoginController(JwtUtil jwtUtil) {
-//        this.jwtUtil = jwtUtil;
-//    }
 
 
 //    @PostMapping(value = "/")
@@ -35,24 +32,24 @@ public class LoginController {
 //    }
 
     @PostMapping(value = "/", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) throws NoSuchAlgorithmException, InvalidKeySpecException {
         String username = request.getUsername();
         String password = request.getPassword();
         // TODO: validate username and password
-        String token = JwtUtil.generateToken(username);
+        String token = JwtUtil.generateToken(username, password);
         return ResponseEntity.ok(new LoginResponse(username, token));
     }
 
     @PostMapping(value = "/validate", consumes = "application/json", produces = "application/json")
     public ResponseEntity<LoginResponse> validate(
             @RequestBody LoginValidateRequest request,
-            @RequestHeader("Authorization") String authorizationHeader) {
+            @RequestHeader("Authorization") String authorizationHeader) throws NoSuchAlgorithmException, InvalidKeySpecException {
 //        String token = request.getToken(); // Obtener el token de la solicitud
         String token = authorizationHeader.replace("Bearer ", "");
         // Validar el token utilizando JwtUtil
-        if (JwtUtil.validateToken(token)) {
+        if (JwtUtil.validateToken(token, request.getPassword())) {
             // El token es válido
-            String username = JwtUtil.getUsernameFromToken(token);
+            String username = JwtUtil.getUsernameFromToken(token, request.getPassword());
 
             // Lógica adicional según tus necesidades
 
